@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformers Quiz 🤖</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/latest/umd/lucide.min.js"></script>
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce {
+            animation: bounce 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0;">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const { Volume2, RotateCcw } = lucide;
+
+        const TransformersQuiz = () => {
+          const quizData = [
+            {
+              id: 1,
+              question: "Who is the leader of the Autobots?",
+              image: "🤖",
+              options: ["Optimus Prime", "Bumblebee", "Ironhide", "Jazz"],
+              correct: 0,
+              fun_fact: "Optimus Prime is brave and wise!"
+            },
+            {
+              id: 2,
+              question: "What color is Bumblebee?",
+              image: "🐝",
+              options: ["Red and blue", "Yellow and black", "Silver", "Purple"],
+              correct: 1,
+              fun_fact: "Bumblebee loves to protect humans!"
+            },
+            {
+              id: 3,
+              question: "What does Optimus Prime transform into?",
+              image: "🚛",
+              options: ["A car", "A truck", "A plane", "A tank"],
+              correct: 1,
+              fun_fact: "He's a powerful semi-truck!"
+            },
+            {
+              id: 4,
+              question: "Which Transformer is small and funny?",
+              image: "🤖",
+              options: ["Megatron", "Bumblebee", "Starscream", "Ratchet"],
+              correct: 1,
+              fun_fact: "Bumblebee is loyal and brave!"
+            },
+            {
+              id: 5,
+              question: "What planet are the Transformers from?",
+              image: "🌍",
+              options: ["Earth", "Mars", "Cybertron", "Venus"],
+              correct: 2,
+              fun_fact: "Cybertron is their home world!"
+            },
+            {
+              id: 6,
+              question: "Who is the evil leader of the Decepticons?",
+              image: "😈",
+              options: ["Starscream", "Megatron", "Soundwave", "Barricade"],
+              correct: 1,
+              fun_fact: "Megatron is very powerful and strong!"
+            },
+            {
+              id: 7,
+              question: "What does 'transform' mean?",
+              image: "✨",
+              options: ["Jump high", "Change into something else", "Run fast", "Fly"],
+              correct: 1,
+              fun_fact: "Transformers change between robot and vehicle form!"
+            },
+            {
+              id: 8,
+              question: "Which Transformers do you like most?",
+              image: "⭐",
+              options: ["Optimus Prime", "Bumblebee", "Both!", "I don't know yet"],
+              correct: 2,
+              fun_fact: "All Transformers are awesome!"
+            }
+          ];
+
+          const [currentQuestion, setCurrentQuestion] = useState(0);
+          const [score, setScore] = useState(0);
+          const [answered, setAnswered] = useState(false);
+          const [selectedAnswer, setSelectedAnswer] = useState(null);
+          const [quizComplete, setQuizComplete] = useState(false);
+
+          const playSound = (type) => {
+            try {
+              const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+              const oscillator = audioContext.createOscillator();
+              const gainNode = audioContext.createGain();
+              
+              oscillator.connect(gainNode);
+              gainNode.connect(audioContext.destination);
+              
+              if (type === 'correct') {
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+              } else if (type === 'wrong') {
+                oscillator.frequency.value = 400;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+              }
+            } catch (e) {
+              console.log("Audio not available");
+            }
+          };
+
+          const handleAnswer = (index) => {
+            if (answered) return;
+            
+            setSelectedAnswer(index);
+            setAnswered(true);
+            
+            if (index === quizData[currentQuestion].correct) {
+              setScore(score + 1);
+              playSound('correct');
+            } else {
+              playSound('wrong');
+            }
+          };
+
+          const handleNext = () => {
+            if (currentQuestion < quizData.length - 1) {
+              setCurrentQuestion(currentQuestion + 1);
+              setAnswered(false);
+              setSelectedAnswer(null);
+            } else {
+              setQuizComplete(true);
+            }
+          };
+
+          const handleRestart = () => {
+            setCurrentQuestion(0);
+            setScore(0);
+            setAnswered(false);
+            setSelectedAnswer(null);
+            setQuizComplete(false);
+          };
+
+          const question = quizData[currentQuestion];
+          const percentage = Math.round((score / quizData.length) * 100);
+
+          if (quizComplete) {
+            return (
+              <div className="min-h-screen bg-gradient-to-b from-orange-400 via-red-500 to-purple-600 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
+                  <div className="text-6xl mb-6 animate-bounce">🏆</div>
+                  <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600 mb-4">
+                    AWESOME JOB!
+                  </h1>
+                  <div className="text-5xl font-black text-purple-600 mb-2">
+                    {score}/{quizData.length}
+                  </div>
+                  <div className="text-2xl font-bold text-gray-700 mb-8">
+                    {percentage}% Correct!
+                  </div>
+                  
+                  <div className="mb-8">
+                    {percentage === 100 && <p className="text-xl font-bold text-green-600 mb-3">🌟 PERFECT SCORE! You're a Transformers expert! 🌟</p>}
+                    {percentage >= 75 && percentage < 100 && <p className="text-xl font-bold text-blue-600 mb-3">🎉 Great job! You know a lot about Transformers!</p>}
+                    {percentage >= 50 && percentage < 75 && <p className="text-xl font-bold text-orange-600 mb-3">👍 Nice work! Keep learning about Transformers!</p>}
+                    {percentage < 50 && <p className="text-xl font-bold text-purple-600 mb-3">💪 Good try! Watch some Transformers and try again!</p>}
+                  </div>
+
+                  <button
+                    onClick={handleRestart}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 px-6 rounded-2xl text-2xl transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    Play Again
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen bg-gradient-to-b from-blue-400 via-orange-400 to-red-500 p-4 flex flex-col justify-between">
+              {/* Header */}
+              <div className="text-center mb-4">
+                <h1 className="text-4xl font-black text-white drop-shadow-lg mb-2">
+                  🤖 TRANSFORMERS QUIZ 🤖
+                </h1>
+                <div className="flex justify-between items-center max-w-md mx-auto text-white text-lg font-bold">
+                  <span>Question {currentQuestion + 1}/{quizData.length}</span>
+                  <span>Score: {score}</span>
+                </div>
+                {/* Progress bar */}
+                <div className="mt-2 max-w-md mx-auto h-4 bg-white bg-opacity-30 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-yellow-300 to-red-500 transition-all duration-500"
+                    style={{ width: `${((currentQuestion + 1) / quizData.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Main content */}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
+                  {/* Question image/emoji */}
+                  <div className="text-8xl text-center mb-6 animate-pulse">
+                    {question.image}
+                  </div>
+
+                  {/* Question text */}
+                  <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+                    {question.question}
+                  </h2>
+
+                  {/* Answer options */}
+                  <div className="grid grid-cols-1 gap-4 mb-6">
+                    {question.options.map((option, index) => {
+                      let buttonClass = "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white";
+                      
+                      if (answered) {
+                        if (index === question.correct) {
+                          buttonClass = "bg-gradient-to-r from-green-400 to-green-500 text-white scale-105";
+                        } else if (index === selectedAnswer && index !== question.correct) {
+                          buttonClass = "bg-gradient-to-r from-red-400 to-red-500 text-white";
+                        } else {
+                          buttonClass = "bg-gray-300 text-gray-600";
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleAnswer(index)}
+                          disabled={answered}
+                          className={`${buttonClass} font-bold py-4 px-6 rounded-2xl text-xl transition transform hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:active:scale-100`}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Fun fact or next button */}
+                  {answered && (
+                    <div className="space-y-4">
+                      {selectedAnswer === question.correct ? (
+                        <div className="bg-green-100 border-4 border-green-500 rounded-2xl p-4 text-center">
+                          <p className="text-2xl font-bold text-green-700 mb-2">✨ CORRECT! ✨</p>
+                          <p className="text-lg text-green-600">{question.fun_fact}</p>
+                        </div>
+                      ) : (
+                        <div className="bg-red-100 border-4 border-red-500 rounded-2xl p-4 text-center">
+                          <p className="text-2xl font-bold text-red-700 mb-2">❌ Try again next time!</p>
+                          <p className="text-lg text-red-600">The answer was: <span className="font-bold">{question.options[question.correct]}</span></p>
+                        </div>
+                      )}
+                      
+                      <button
+                        onClick={handleNext}
+                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-6 rounded-2xl text-xl transition transform hover:scale-105 active:scale-95"
+                      >
+                        {currentQuestion === quizData.length - 1 ? "See Results! 🏆" : "Next Question →"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Fun footer */}
+              <div className="text-center text-white text-sm font-bold mt-4">
+                Keep learning about Transformers!
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<TransformersQuiz />);
+    </script>
+</body>
+</html>
